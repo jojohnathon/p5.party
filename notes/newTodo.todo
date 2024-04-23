@@ -1,0 +1,126 @@
+□ something to consider: 
+    ✓ does resolved promise resolve again immediately if waited on again? (a: yes) @done(22-06-27 11:14)
+    ✓ if so, we could cache the load() promise on the object and use that for a better when ready/loaded. @done(22-06-27 11:14)
+    ✓ though that might mean some wrapping code in the method @done(22-06-27 11:14)
+    ✓ move the load call into the constructor? @done(22-08-04 12:33)
+
+Docs:
+    ✓ make note about empty {} not being in guests[] @done(22-06-27 11:38)
+        ✓ if you want everyone to be in there as soon as they connect, add a placehold prop `partyGetMyShared({placeholder: true})` @done(22-06-27 11:38)
+
+    Restore Features:
+    ✓ test p5.party loading callbacks @done(22-06-01 21:04)
+    ✓ partySetShared() @done(22-06-01 23:23)
+    ✓ partyIsHost @done(22-06-01 22:28)
+    ✓ partyLoadMyShared(); @done(22-06-03 11:18)
+    ✓ partyLoadGuestShareds(); @done(22-06-03 11:18)
+    ✓ partyWatchShared() @done(22-06-06 14:50)
+    ✓ partyEmit() partySubscribe() @done(22-06-06 14:59)
+    
+
+    ✓ pong example doesn't work because guests[] doesn't contain the same object as me. (it has a different copy of the record/shared object) @done(22-06-07 21:55)
+    ✓ D12 is breaking for same reason! @done(22-06-07 21:55)
+    
+    ✓ ghosts does not work because guests[].length can't be used to determine join order any more. (can be fixed by putting a property on getMyShared()) @done(22-06-07 21:55)
+
+Code Review:
+    ✓ check what is public/private @done(22-08-04 12:44)
+    
+
+Intermission: 
+    □ check test coverage
+    ✓ extensions: is "better comments" better than "highlight"? @done(24-01-29 14:51)
+        yes
+
+Deploy:
+    ✓ add student credit to readme @done(22-06-08 12:42)
+    ✓ bump tsc version, remove ts suffix in code @done(22-06-08 12:42)
+    ✓ squash tsc to main @done(22-06-08 12:42)
+    ✓ push to github, verify netlify @done(22-06-08 12:42)
+    ✓ release @done(22-06-08 12:42)
+
+
+Examples:
+    ✓ move multifile examples to modules @done(22-08-04 14:46)
+    ✓ remove bad examples (tanks 1, drag 1) @done(22-08-04 14:46)
+    ✓ remove ! examples @done(22-06-07 13:05)
+    ✓  fix live server injecting into html displayed on example pages? @done(22-06-07 21:59)
+    ✓ e3_sign_up example puts input field at bottom of page @done(22-09-21 11:14)
+    ✓ callbacks example puts button at bottom of page @done(22-09-21 11:16)
+
+Clean up: 
+    ✓ remove .js files @done(22-06-06 23:37)
+    ✓ remove old dev deps @done(22-06-06 23:37)
+    ✓ update npm scripts now that js dev deps are gone @done(22-06-07 11:14)
+    ✓ clean up branches (merge + remove feature branches) @done(22-09-21 11:16)
+
+Tooling: 
+    ✓ embed css into the javascript? @done(22-09-21 13:43)
+        https://github.com/evanw/esbuild/issues/2110
+
+Priority Features:
+    ✓ remote controls @done(22-09-23 12:42)
+        ✓ reload others @done(22-09-23 12:42)
+        ✓ disconnect others @done(22-09-23 12:42)
+        ✓ auto @done(22-09-23 12:42)
+            - auto sets a session flag
+            ✓ if session flag is set and browser is reloaded @done(22-09-23 12:42)
+                - other clients should disconnect
+                - this client should connect, become host
+                - other clients should reload
+                its probably okay if the order is
+                - this client connects
+                - other clients disconnect, so this one becomes host
+                - this one has setup()
+                - other clients reload
+            ✓ move all this remote control stuff into p5.party, out of core @done(22-09-23 12:41)
+            □ code clean up
+            ✓ CSS for checkbox @done(22-09-23 12:41)
+
+    
+
+
+Possible Features:
+    □ partyWatchGuests()
+    □ allow early calls to Record initData, setData, watchShared, delete
+        these currently expect the dsRecord to be ready and fail if not
+        they could wait for whenLoaded() instead with a little refactoring
+        wait until need is demonstrated
+
+    □ show warning or error on writes to "owned" records
+        it is generally a good practice to only read from `guests` array
+        and write to only `my`
+        though sometimes, with careful planning, it is alright to violate this general practice
+        □ consider allowing but warning when this practice is violated
+        □ consider erroring when this practice is violated (locked `guests`)
+        □ consider allowing user to mark owner of shared objects and enforce with warnings or errors
+
+    □ record tracking, garbage collect, room reset
+		currently all server records for named shared objects are leaked
+		p5.party does not maintan list of records created
+		user records and guest records are not deleted automatically (unless the server restarts)
+        there is no way to manually delete a record
+        □ create room.deleteRecord
+    
+    □ overwrite on reopening room
+        partyLoadShared takes an initobject which is only used if the record doesn't exist yet. Might be better to set default to overwriting record contents if connector is host? Or some way to signal you want this? a `resetEmptyRoom` flag or call.
+        Currently i find i'm more likely to use setup()->partyIsHost->partySetShared thanthe initobject. the init object just isn't more convient (which was the point!)
+    
+    □ tsc javadocs
+
+    ✓ restore partyToggleInfo() - panel @done(24-01-29 14:55)
+        the earlier version of p5.party had an info panel that showed who was connected and who was host, maybe restore it?
+        
+    □ party reset
+        ability to disconnect/reconnect all connected clients, and possibly reload their browsers. Live reloading multiple browsers on save in development is very helpful when working with p5.party, i have this set up in VS Code, but when working on p5 web editor or with remote partners this can be a challenge.
+        This is now partially implemented, you can disconnect other clients from the info panel.
+        Should there be an API call for this?
+        I ran into a roadblock trying to reload clients hosted on the p5 web editor, its just not structured in a way where a simple reload gets the latest code.
+    
+    □ ability to query number of people in a room before connecting
+
+
+    □ use page visibility api this to let host call “not it” if frozen?
+        https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+    
+    □ is this a better way to describe POJOs on p5.party : “Plain objects (objects without a prototype)”
